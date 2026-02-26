@@ -1,28 +1,56 @@
 import 'app_logger.dart';
+import 'log_config.dart';
 
 class Log {
   Log._();
 
-  static void t(String msg) => appLogger.t(msg); // trace
-  static void d(String msg) => appLogger.d(msg); // debug
-  static void i(String msg) => appLogger.i(msg); // info
-  static void w(String msg) => appLogger.w(msg); // warning
+  static void t(dynamic msg) {
+    if (LogConfig.shouldLog) appLogger.t(msg);
+  }
+
+  static void d(dynamic msg) {
+    if (LogConfig.shouldLog) appLogger.d(msg);
+  }
+
+  static void i(dynamic msg) {
+    if (LogConfig.shouldLog) appLogger.i(msg);
+  }
+
+  static void w(dynamic msg) {
+    if (LogConfig.shouldLog) appLogger.w(msg);
+  }
 
   static void e(
-      String msg, {
+      dynamic msg, {
         Object? error,
         StackTrace? stackTrace,
       }) {
-    appLogger.e(msg, error: error, stackTrace: stackTrace);
-    // 🔮 Future hook: add Crashlytics or Sentry here
-    // FirebaseCrashlytics.instance.recordError(error, stackTrace);
+    if (LogConfig.shouldLog) {
+      appLogger.e(msg, error: error, stackTrace: stackTrace);
+      // 🔮 Future hook: Crashlytics / Sentry always runs regardless of shouldLog
+      // FirebaseCrashlytics.instance.recordError(error, stackTrace);
+    }
   }
 
   static void f(
-      String msg, {
+      dynamic msg, {
         Object? error,
         StackTrace? stackTrace,
       }) {
-    appLogger.f(msg, error: error, stackTrace: stackTrace);
+    if (LogConfig.shouldLog) {
+      appLogger.f(msg, error: error, stackTrace: stackTrace);
+    }
+  }
+
+  /// Enable release logging + rebuild logger instance
+  static void enableReleaseLogging({Duration? timeout}) {
+    LogConfig.enableTemporarily(timeout: timeout);
+    refreshLogger(); // rebuild with new level
+  }
+
+  /// Disable release logging + rebuild logger instance
+  static void disableReleaseLogging() {
+    LogConfig.disable();
+    refreshLogger();
   }
 }
